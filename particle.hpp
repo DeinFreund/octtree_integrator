@@ -11,27 +11,27 @@ template<typename S>
 class Particle
 {
 public:
-  double mass, potential, softening;
+  float mass, potential, softening;
   S softener;
 
-  double distanceTo(const Particle<S>* other) const{
+  float distanceTo(const Particle<S>* other) const{
     return (pos() - other->pos()).norm();
   }
-  double distanceTo(const Eigen::Vector3d& other) const{
+  float distanceTo(const Eigen::Vector3f& other) const{
     return (pos() - other).norm();
   }
 
-  bool inside(const Eigen::Vector3d& bottom,const Eigen::Vector3d& top) const{
+  bool inside(const Eigen::Vector3f& bottom,const Eigen::Vector3f& top) const{
     for (int i = 0; i < 3; i++) if (pos()(i) < bottom(i) || pos()(i) >= top(i)) return false;
     return true;
   }
 
-  Eigen::Vector3d getForce(const Particle<S>* other) const{
+  Eigen::Vector3f getForce(const Particle<S>* other) const{
     return (other->pos() - pos()).normalized() * mass * other->mass * softener.getForceSoftening((other->pos() - pos()).norm(),softening);
   }
 
-  Eigen::Vector3d getForces(const vector<Particle<S>*> &particles) const{
-    Eigen::Vector3d force({0,0,0});
+  Eigen::Vector3f getForces(const vector<Particle<S>*> &particles) const{
+    Eigen::Vector3f force({0,0,0});
     for (const auto* p : particles){
       if (p->pos() == pos()) continue;
       //cerr << "f:\n" << getForce(p) << endl;
@@ -39,12 +39,12 @@ public:
     }
     return force;
   }
-  double getPotential(const Particle<S>* other) const{
+  float getPotential(const Particle<S>* other) const{
     return other->mass * softener.getSoftening((other->pos() - pos()).norm(),softening);
   }
 
-  double getPotentials(const vector<Particle<S>*> &particles) const{
-    double potential(0);
+  float getPotentials(const vector<Particle<S>*> &particles) const{
+    float potential(0);
     for (const auto* p : particles){
       if (p->pos() == pos()) continue;
       potential += getPotential(p);
@@ -52,11 +52,11 @@ public:
     return potential;
   }
 
-  void advanceTime(double dt){
+  void advanceTime(float dt){
     timePassed += dt;
   }
 
-  Eigen::Vector3d updateAcceleration(const Octtree<Particle<S>>& tree){
+  Eigen::Vector3f updateAcceleration(const Octtree<Particle<S>>& tree){
     int cost = 0;
     newAcc = tree.getAccelerations(this, cost);
     return newAcc;
@@ -70,37 +70,37 @@ public:
     lastAcc = newAcc;
   }
 
-  double kinetic_energy() const{
+  float kinetic_energy() const{
     return 0.5 * mass * vel().squaredNorm();
   }
   
-  Eigen::Vector3d pos() const{
+  Eigen::Vector3f pos() const{
     return lastPos + timePassed * vel_halfstep();
   }
 
-  Eigen::Vector3d vel() const{
+  Eigen::Vector3f vel() const{
     return lastVel + timePassed * lastAcc;
   }
 
   
-  Eigen::Vector3d acc() const{
+  Eigen::Vector3f acc() const{
     return lastAcc;
   }
 
   
-  Eigen::Vector3d vel_halfstep() const{
+  Eigen::Vector3f vel_halfstep() const{
     return lastVel + timePassed / 2 * lastAcc;
   }
 
-  Eigen::Vector3d& setPos(){
+  Eigen::Vector3f& setPos(){
     return lastPos;
   }
   
-  Eigen::Vector3d& setVel(){
+  Eigen::Vector3f& setVel(){
     return lastVel;
   }
 
-  double time() const{
+  float time() const{
     return timePassed;
   }
   
@@ -116,9 +116,9 @@ public:
   }
   
 private:
-  Eigen::Vector3d lastPos, lastVel, lastAcc = Eigen::Vector3d::Zero();
-  Eigen::Vector3d newAcc = Eigen::Vector3d::Zero();
-  double timePassed = 0;
+  Eigen::Vector3f lastPos, lastVel, lastAcc = Eigen::Vector3f::Zero();
+  Eigen::Vector3f newAcc = Eigen::Vector3f::Zero();
+  float timePassed = 0;
   
 };
 

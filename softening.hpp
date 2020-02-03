@@ -7,14 +7,14 @@ using namespace std;
 
 class PlummerSoftening{
 public:
-  double getSoftening(const double dist, const double softening) const;
-  double getForceSoftening(const double dist, const double softening) const;
+  float getSoftening(const float dist, const float softening) const;
+  float getForceSoftening(const float dist, const float softening) const;
 
 };
 class FasterSoftening{
 public:
-  double getSoftening(const double dist, const double softening) const;
-  double getForceSoftening(const double dist, const double softening) const;
+  float getSoftening(const float dist, const float softening) const;
+  float getForceSoftening(const float dist, const float softening) const;
 
   
 };

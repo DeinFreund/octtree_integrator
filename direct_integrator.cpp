@@ -8,18 +8,18 @@ using namespace std;
 
 
 
-const double distBucketSize = 0.1;
-const double softening = 1;
-const double timestep_mult = 0.1;
+const float distBucketSize = 0.1;
+const float softening = 1;
+const float timestep_mult = 0.1;
 
 template<typename T>
-void integrateTimestep(const vector<Particle<T>*>& correct, const double timestep, const vector<Particle<T>*>& all){
+void integrateTimestep(const vector<Particle<T>*>& correct, const float timestep, const vector<Particle<T>*>& all){
 
   cerr << "Integrating " << correct.size() << " particles over " << timestep << "s" << endl;
   vector<Particle<T>*> defer;
   vector<Particle<T>*> keep;
   for (auto* p : correct){
-    double optimalTimestep = timestep_mult * sqrt(0.1 / p->acc().norm());//softening
+    float optimalTimestep = timestep_mult * sqrt(0.1 / p->acc().norm());//softening
     if (optimalTimestep < timestep){
       defer.push_back(p);
     }else{
@@ -34,10 +34,10 @@ void integrateTimestep(const vector<Particle<T>*>& correct, const double timeste
     integrateTimestep(defer, timestep / 2, all);
     integrateTimestep(defer, timestep / 2, all);
   }
-  Octtree<Particle<T>> tree(all, Eigen::Vector3d({-1000, -1000, -1000}), Eigen::Vector3d({1000, 1000, 1000}));
-  double ekin = 0;
-  double epot = 0;
-//  double epot2 = 0;
+  Octtree<Particle<T>> tree(all, Eigen::Vector3f({-1000, -1000, -1000}), Eigen::Vector3f({1000, 1000, 1000}));
+  float ekin = 0;
+  float epot = 0;
+//  float epot2 = 0;
   for (auto* p : all){
     ekin += p->kinetic_energy();
     epot += tree.getPotentials(p);
@@ -50,8 +50,8 @@ void integrateTimestep(const vector<Particle<T>*>& correct, const double timeste
   cerr << all[1]->pos() << endl << all[2]->pos() << endl;
   bool anyExcessiveStep = 0;
   for (auto* p : keep){
-    double acc = p->updateAcceleration(tree).norm();
-    double optimalTimestep = timestep_mult * sqrt(0.1 / acc);//softening
+    float acc = p->updateAcceleration(tree).norm();
+    float optimalTimestep = timestep_mult * sqrt(0.1 / acc);//softening
     if (optimalTimestep < timestep) {
       anyExcessiveStep = true;
     }
@@ -66,19 +66,19 @@ void integrateTimestep(const vector<Particle<T>*>& correct, const double timeste
 }
 
 template<typename T>
-vector<double> getAverageForce(const vector<vector<Particle<T>*>>& buckets, const vector<Particle<T>*>& all, const Octtree<Particle<T>>& octtree, bool plot = true){
+vector<float> getAverageForce(const vector<vector<Particle<T>*>>& buckets, const vector<Particle<T>*>& all, const Octtree<Particle<T>>& octtree, bool plot = true){
   ofstream outfile;
   outfile.open("forceFunction.dat", ios::out | ios::trunc );
-  Eigen::Vector3d origin({0,0,0});
+  Eigen::Vector3f origin({0,0,0});
   
-  vector<double> avgForce(buckets.size());
-  vector<double> analyticalForce(buckets.size());
-  double totalMass = 0;
-  double testMass = 1*all[3]->mass;
+  vector<float> avgForce(buckets.size());
+  vector<float> analyticalForce(buckets.size());
+  float totalMass = 0;
+  float testMass = 1*all[3]->mass;
   cerr << setprecision(10);
   int nodesEvaluated = 0;
   for (size_t i = 0; i < buckets.size(); i++){
-    double r = (i+0.5) * distBucketSize;
+    float r = (i+0.5) * distBucketSize;
     //cerr << "mass is " << totalMass << " divider is " << r*r << endl;
     analyticalForce[i] = -totalMass * testMass / pow(r,2);
     for (Particle<T>* p : buckets[i]){
@@ -126,15 +126,15 @@ template<typename T>
 vector<vector<Particle<T>*>> getDistanceFunction(const vector<Particle<T>*>& particles, bool plot = true){
   ofstream outfile;
   outfile.open("distanceFunction.dat", ios::out | ios::trunc );
-  Eigen::Vector3d origin({0,0,0});
+  Eigen::Vector3f origin({0,0,0});
   
   vector<vector<Particle<T>*>> distBuckets(100);
-  vector<double> massBuckets(distBuckets.size());
-  vector<double> volume(distBuckets.size(), 0);
-  double totalMass = 0;
+  vector<float> massBuckets(distBuckets.size());
+  vector<float> volume(distBuckets.size(), 0);
+  float totalMass = 0;
 
   for (size_t i = 1; i < distBuckets.size(); i++){
-    double r = i * distBucketSize;
+    float r = i * distBucketSize;
     volume[i] = 4 * 0.33333 * M_PI * pow(r,3) - volume[i - 1];
   }
   for (Particle<T>* p : particles){
@@ -143,7 +143,7 @@ vector<vector<Particle<T>*>> getDistanceFunction(const vector<Particle<T>*>& par
     distBuckets[bucket].push_back(p);
     massBuckets[bucket] += p->mass;
   }
-  vector<double> analytical;
+  vector<float> analytical;
   
   for (size_t i = 0; i < distBuckets.size(); i++){
     outfile << i * distBucketSize << " ";
@@ -152,7 +152,7 @@ vector<vector<Particle<T>*>> getDistanceFunction(const vector<Particle<T>*>& par
   for (size_t i = 0; i < distBuckets.size(); i++){
     outfile << massBuckets[i] / volume[i] << " ";
   }outfile << endl;
-  double a = 0.4;
+  float a = 0.4;
   for (size_t i = 0; i < distBuckets.size(); i++){
     outfile << i * distBucketSize << " ";
   }outfile << endl;
@@ -225,7 +225,7 @@ int main(){
   vector<Particle<PlummerSoftening>*> particles;
   readInput(particles);
   removeDuplicates(particles);
-  Octtree<Particle<PlummerSoftening>> tree(particles, Eigen::Vector3d({-1000, -1000, -1000}), Eigen::Vector3d({1000, 1000, 1000}));
+  Octtree<Particle<PlummerSoftening>> tree(particles, Eigen::Vector3f({-1000, -1000, -1000}), Eigen::Vector3f({1000, 1000, 1000}));
   //auto distBuckets = getDistanceFunction(particles, false);
   //auto avgForce = getAverageForce(distBuckets, particles, tree, false);
   cerr << "Built tree "<< endl;
@@ -234,5 +234,5 @@ int main(){
     p->integrateStep();
   }
   cerr << "Ready for integration "<< endl;
-  //integrateTimestep(particles, 10, particles);
+  integrateTimestep(particles, 10, particles);
 }

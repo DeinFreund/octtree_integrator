@@ -1,11 +1,11 @@
 #include "softening.hpp"
 
-double PlummerSoftening::getSoftening(const double dist, const double softening) const{
+float PlummerSoftening::getSoftening(const float dist, const float softening) const{
 
   return -1 * pow(dist * dist + softening * softening, -0.5);
 }
 
-double PlummerSoftening::getForceSoftening(const double dist, const double softening) const{
+float PlummerSoftening::getForceSoftening(const float dist, const float softening) const{
 
   return dist * pow(dist * dist + softening * softening, -1.5);
 }
