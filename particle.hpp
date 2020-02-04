@@ -15,25 +15,25 @@ public:
   S softener;
 
   float distanceTo(const Particle<S>* other) const{
-    return (pos() - other->pos()).norm();
+    return (cpos - other->pos()).norm();
   }
   float distanceTo(const Eigen::Vector3f& other) const{
-    return (pos() - other).norm();
+    return (cpos - other).norm();
   }
 
   bool inside(const Eigen::Vector3f& bottom,const Eigen::Vector3f& top) const{
-    for (int i = 0; i < 3; i++) if (pos()(i) < bottom(i) || pos()(i) >= top(i)) return false;
+    for (int i = 0; i < 3; i++) if (cpos(i) < bottom(i) || cpos(i) >= top(i)) return false;
     return true;
   }
 
   Eigen::Vector3f getForce(const Particle<S>* other) const{
-    return (other->pos() - pos()).normalized() * mass * other->mass * softener.getForceSoftening((other->pos() - pos()).norm(),softening);
+    return (other->cpos - cpos).normalized() * mass * other->mass * softener.getForceSoftening((other->cpos - cpos).norm(),softening);
   }
 
   Eigen::Vector3f getForces(const vector<Particle<S>*> &particles) const{
     Eigen::Vector3f force({0,0,0});
     for (const auto* p : particles){
-      if (p->pos() == pos()) continue;
+      if (*p == *this) continue;
       //cerr << "f:\n" << getForce(p) << endl;
       force += getForce(p);
     }
@@ -46,7 +46,7 @@ public:
   float getPotentials(const vector<Particle<S>*> &particles) const{
     float potential(0);
     for (const auto* p : particles){
-      if (p->pos() == pos()) continue;
+      if (*p == *this) continue;
       potential += getPotential(p);
     }
     return potential;
@@ -54,6 +54,7 @@ public:
 
   void advanceTime(float dt){
     timePassed += dt;
+    cpos = pos();
   }
 
   Eigen::Vector3f updateAcceleration(const Octtree<Particle<S>>& tree){
@@ -114,7 +115,8 @@ public:
     stream << particle.vel() << "\nTime: " << particle.time() << "\n";
     return stream;
   }
-  
+
+  Eigen::Vector3f cpos;
 private:
   Eigen::Vector3f lastPos, lastVel, lastAcc = Eigen::Vector3f::Zero();
   Eigen::Vector3f newAcc = Eigen::Vector3f::Zero();

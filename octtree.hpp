@@ -39,8 +39,8 @@ public:
       velocity << 0,0,0;
       total_mass = 0;
       for (T* p : particles){
-	center_of_mass += p->mass * p->pos();
-	velocity += p->mass * p->vel();
+	center_of_mass += p->mass * p->cpos;
+	//velocity += p->mass * p->vel();
 	total_mass += p->mass;
       }
       center_of_mass *= 1.0/total_mass;
@@ -49,7 +49,7 @@ public:
       diameter = 0;
       vector<Eigen::Vector3f> relative_pos(particles.size());
       for (size_t i = 0; i < particles.size(); i++){
-	relative_pos[i] = (particles[i]->pos() - center_of_mass);
+	relative_pos[i] = (particles[i]->cpos - center_of_mass);
 	diameter = max(diameter, 2 * relative_pos[i].norm());
       }
       
@@ -91,8 +91,8 @@ public:
   
   Eigen::Vector3f getAccelerations(const T* particle, int& nodesEvaluated = 0, bool useQuadrupole = true) const{
 
-    if (particles.empty() || (particles.size() == 1 && *particles[0] == *particle)) return Eigen::Vector3f::Zero();
-    const Eigen::Vector3f delta = particle->pos() - center_of_mass;
+    if (particles.empty() || (particles.size() == 1 && particles[0]->cpos == particle->cpos)) return Eigen::Vector3f::Zero();
+    const Eigen::Vector3f delta = particle->cpos - center_of_mass;
     if (particle->inside(bottom, top) || diameter / delta.norm() > ACCURACY_CRITERION){
       Eigen::Vector3f sum({0,0,0});
       for (const auto* o : children){
@@ -103,7 +103,7 @@ public:
 
     Eigen::Vector3f curForce;
     if (diameter / delta.norm() < MONOPOLE_ACCURACY_CRITERION){
-      curForce = getAcceleration(delta, particle->softening, false) * particle->mass;
+      curForce = getAcceleration(delta, particle->softening, false);
     }else{
       nodesEvaluated ++;
       curForce = getAcceleration(delta, particle->softening, useQuadrupole);
@@ -139,7 +139,7 @@ public:
   float getPotentials(const T* particle) const{
 
     if (particles.empty() || (particles.size() == 1 && *particles[0] == *particle)) return 0;
-    const Eigen::Vector3f delta = particle->pos() - center_of_mass;
+    const Eigen::Vector3f delta = particle->cpos - center_of_mass;
     if (particle->inside(bottom, top) || diameter / delta.norm() > ACCURACY_CRITERION){
       float sum = 0;
       for (const auto* o : children){
@@ -180,7 +180,7 @@ public:
   }
 
   
-  const float ACCURACY_CRITERION = 0.5;//2.0;
+  const float ACCURACY_CRITERION = 0.1;//2.0;
   const float MONOPOLE_ACCURACY_CRITERION = 0.1 * ACCURACY_CRITERION;
   Eigen::Matrix3f quadrupole;
   Eigen::Vector3f center_of_mass;
