@@ -34,7 +34,6 @@ public:
     Eigen::Vector3f force({0,0,0});
     for (const auto* p : particles){
       if (*p == *this) continue;
-      //cerr << "f:\n" << getForce(p) << endl;
       force += getForce(p);
     }
     return force;
@@ -57,7 +56,7 @@ public:
     cpos = pos();
   }
 
-  Eigen::Vector3f updateAcceleration(const Octtree<Particle<S>>& tree){
+  Eigen::Vector3f updateAcceleration(const Octtree<Particle<S>>& tree, const vector<Particle<S>*> &particles){
     int cost = 0;
     newAcc = tree.getAccelerations(this, cost);
     return newAcc;

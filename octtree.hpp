@@ -71,7 +71,6 @@ public:
       }
 	
     }
-    //cerr << "Initialized " << *this << endl;
 
   }
 
@@ -114,7 +113,7 @@ public:
   Eigen::Vector3f getAcceleration(const Eigen::Vector3f& delta, float softening, bool useQuadrupole = true) const
   {
     const float norm2 = delta.squaredNorm() + softening * softening;
-    const float norm3 = pow(norm2, 3/2.);
+    const float norm3 = pow(norm2, 1.5f);
     const Eigen::Vector3f monopoleGrad({
 	-delta(0)/norm3,
 	-delta(1)/norm3,
@@ -122,15 +121,15 @@ public:
 	});
     if (useQuadrupole){
       
-      const float norm5 = pow(norm2, 5/2.);
-      const float norm7 = pow(norm2, 7/2.);
+      const float norm5 = pow(norm2, 2.5f);
+      const float norm7 = pow(norm2, 3.5f);
       const Eigen::Vector3f quadrupoleGrad({
 	  (2*quadrupole(0,0)*delta(0)+quadrupole(0,1)*delta(1)+quadrupole(0,2)*delta(2)+quadrupole(1,0)*delta(1)+quadrupole(2,0)*delta(2))/norm5-(5*delta(0)*(delta(0)*(quadrupole(0,0)*delta(0)+quadrupole(1,0)*delta(1)+quadrupole(2,0)*delta(2))+delta(1)*(quadrupole(0,1)*delta(0)+quadrupole(1,1)*delta(1)+quadrupole(2,1)*delta(2))+delta(2)*(quadrupole(0,2)*delta(0)+quadrupole(1,2)*delta(1)+quadrupole(2,2)*delta(2))))/norm7,
 	  (quadrupole(0,1)*delta(0)+quadrupole(1,0)*delta(0)+2*quadrupole(1,1)*delta(1)+quadrupole(1,2)*delta(2)+quadrupole(2,1)*delta(2))/norm5-(5*delta(1)*(delta(0)*(quadrupole(0,0)*delta(0)+quadrupole(1,0)*delta(1)+quadrupole(2,0)*delta(2))+delta(1)*(quadrupole(0,1)*delta(0)+quadrupole(1,1)*delta(1)+quadrupole(2,1)*delta(2))+delta(2)*(quadrupole(0,2)*delta(0)+quadrupole(1,2)*delta(1)+quadrupole(2,2)*delta(2))))/norm7,
 	  (quadrupole(0,2)*delta(0)+quadrupole(1,2)*delta(1)+quadrupole(2,0)*delta(0)+quadrupole(2,1)*delta(1)+2*quadrupole(2,2)*delta(2))/norm5-(5*delta(2)*(delta(0)*(quadrupole(0,0)*delta(0)+quadrupole(1,0)*delta(1)+quadrupole(2,0)*delta(2))+delta(1)*(quadrupole(0,1)*delta(0)+quadrupole(1,1)*delta(1)+quadrupole(2,1)*delta(2))+delta(2)*(quadrupole(0,2)*delta(0)+quadrupole(1,2)*delta(1)+quadrupole(2,2)*delta(2))))/norm7
 	  });
 
-      return total_mass * monopoleGrad + 0.5 * quadrupoleGrad;
+      return total_mass * monopoleGrad + 0.5f * quadrupoleGrad;
     }else{
       return total_mass * monopoleGrad;
     }
@@ -154,9 +153,9 @@ public:
   float getPotential(const Eigen::Vector3f& delta, float softening) const
   {
     const float norm2 = delta.squaredNorm() + softening * softening;
-    const float norm = pow(norm2, 1/2.);
-    const float norm5 = pow(norm2, 5/2.);
-    return - ( total_mass / norm + 0.5 * (delta.transpose() * quadrupole * delta)(0,0) / norm5);
+    const float norm = pow(norm2, 1/2.f);
+    const float norm5 = pow(norm2, 5/2.f);
+    return - ( total_mass / norm + 0.5f * (delta.transpose() * quadrupole * delta)(0,0) / norm5);
   }
 
   

@@ -1,0 +1,2 @@
+Compile using g++ direct_integrator.cpp softening.cpp -o direct2 -I/usr/include/eigen3/ -std=c++17 -Wall -Wextra -Wpedantic -O3 -march=native -mavx -ftree-vectorize -msse4.1 -ftree-vectorizer-verbose=2 -fopt-info-vec-optimized -ffast-math
+
